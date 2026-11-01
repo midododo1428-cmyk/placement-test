@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spark Academy – Year 4 Grammar & Writing Diagnostic</title>
+<style>
+:root{--purple:#5b2c83;--gold:#d5a72e;--ink:#20202a;--soft:#f7f4fb;--line:#ded7e7}
+*{box-sizing:border-box} body{margin:0;background:#fff;color:var(--ink);font-family:Arial,sans-serif}
+.wrap{max-width:820px;margin:auto;padding:24px}.brand{text-align:center;margin:8px 0 22px}
+.brand h1{margin:0;color:var(--purple);font-size:30px}.brand p{margin:7px 0;color:#6c6372}
+.card{border:1px solid var(--line);border-radius:20px;padding:24px;background:#fff;box-shadow:0 8px 28px #0000000d}
+label{font-weight:700;display:block;margin:14px 0 7px}input,textarea{width:100%;font:inherit;padding:13px;border:1px solid #bbb;border-radius:12px}
+textarea{min-height:180px;resize:vertical}.btn{border:0;border-radius:13px;background:var(--purple);color:#fff;font-weight:700;font-size:17px;padding:13px 22px;cursor:pointer}
+.btn:disabled{opacity:.5}.gold{color:#9b7410}.qno{font-size:14px;font-weight:700;color:var(--gold);letter-spacing:.5px}
+.question{font-size:22px;font-weight:700;line-height:1.45;margin:12px 0 18px}.hint{background:var(--soft);padding:15px;border-radius:12px;line-height:1.6}
+.row{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}.hidden{display:none}.progress{height:8px;background:#eee;border-radius:20px;margin-bottom:22px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--gold)}.footer{text-align:center;font-size:12px;color:#8a818e;margin:18px}
+.success{text-align:center;padding:45px 10px}.success h2{color:var(--purple)}
+.small{font-size:13px;color:#746b78}
+@media(max-width:600px){.wrap{padding:13px}.card{padding:18px}.question{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><h1>Spark Academy</h1><p>Year 4 • Grammar & Writing Diagnostic Assessment</p></div>
+
+  <section id="login" class="card">
+    <h2>Student Details</h2>
+    <label>Student name</label><input id="studentName" autocomplete="off" spellcheck="false">
+    <label>SPK ID / Placement Code</label><input id="studentId" autocomplete="off" spellcheck="false">
+    <div class="row"><button class="btn" onclick="startQuiz()">Start Assessment</button></div>
+    <p class="small">One attempt only. Check your answers carefully before moving on.</p>
+  </section>
+
+  <section id="quiz" class="card hidden">
+    <div class="progress"><span id="bar"></span></div>
+    <div class="qno" id="qno"></div>
+    <div class="question" id="qtext"></div>
+    <div id="inputs"></div>
+    <div class="row"><button id="nextBtn" class="btn" onclick="nextQuestion()">Next</button></div>
+  </section>
+
+  <section id="writing" class="card hidden">
+    <div class="qno">WRITING • 5 MARKS</div>
+    <div class="question">Write 5–6 complete sentences about your usual school day.</div>
+    <div class="hint"><b>Think about:</b><br>
+      • Where do you go to school?<br>
+      • When does your school day start?<br>
+      • What do you usually do at school?<br>
+      • Who do you spend time with?<br>
+      • Why do you like or dislike part of your school day?
+    </div>
+    <label>Your writing</label>
+    <textarea id="writingText" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+    <div class="row"><button id="submitBtn" class="btn" onclick="submitAssessment()">Submit Assessment</button></div>
+  </section>
+
+  <section id="done" class="card success hidden">
+    <h2>Assessment submitted successfully.</h2>
+    <p>Thank you.</p>
+  </section>
+  <div class="footer">Designed by M.D.</div>
+</div>
+
+<script>
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbzjtT32AnbqfbrUEfV0Qt_tIO604QACrm5Nm6J6judEVVu8ma5N4EINfLishJcI2XixqA/exec";
+const QUIZ_TYPE = "Y4_GRAMMAR_DIAGNOSTIC_15";
+const QUIZ_NAME = "Spark Academy – Year 4 Grammar & Writing Diagnostic";
+
+const questions = [
+ {id:1,band:1,skill:"Present Simple – third person",text:"Every morning, Adam ________ (brush) his teeth before school.",blanks:1,answers:[["brushes"]],model:"brushes"},
+ {id:2,band:1,skill:"Present Continuous",text:"Be quiet! The baby ________ (sleep) now.",blanks:1,answers:[["is sleeping"]],model:"is sleeping"},
+ {id:3,band:1,skill:"Present Simple – y to ies",text:"Maya usually ________ (carry) her lunch to school.",blanks:1,answers:[["carries"]],model:"carries"},
+ {id:4,band:1,skill:"Present Continuous",text:"Look! The boys ________ (run) towards the school gate.",blanks:1,answers:[["are running"]],model:"are running"},
+ {id:5,band:2,skill:"Present Simple vs Present Continuous",text:"My father usually ________ (drive) to work, but today he ________ (take) the bus.",blanks:2,answers:[["drives"],["is taking"]],model:"drives / is taking"},
+ {id:6,band:2,skill:"Present Simple – negative",text:"Sara plays tennis every Friday. (Make negative.)",blanks:1,answers:[["sara doesn't play tennis every friday","sara does not play tennis every friday"]],model:"Sara doesn't play tennis every Friday."},
+ {id:7,band:2,skill:"Present Continuous – question",text:"The children are doing their homework now. (Make a question.)",blanks:1,answers:[["are the children doing their homework now"]],model:"Are the children doing their homework now?"},
+ {id:8,band:3,skill:"Tense correction",text:"Omar is usually walking to school. (Correct the mistake.)",blanks:1,answers:[["omar usually walks to school"]],model:"Omar usually walks to school."},
+ {id:9,band:3,skill:"Tense transformation",text:"Lina writes an email every evening. (Change into Present Continuous. Use “now”.)",blanks:1,answers:[["lina is writing an email now"]],model:"Lina is writing an email now."},
+ {id:10,band:3,skill:"Mixed tense context",text:"Listen! Someone ________ (knock) at the door, but Dad usually ________ (open) it.",blanks:2,answers:[["is knocking"],["opens"]],model:"is knocking / opens"}
+];
+
+let order=[], index=0, responses=[], studentName="", studentId="";
+
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function norm(s){return String(s||"").toLowerCase().trim().replace(/[’]/g,"'").replace(/[.!?]+$/g,"").replace(/\s+/g," ")}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+function startQuiz(){
+ studentName=document.getElementById("studentName").value.trim();
+ studentId=document.getElementById("studentId").value.trim();
+ if(!studentName || !studentId){alert("Please enter your name and SPK ID / Placement Code.");return}
+ const key="spark_y4_diag15_"+studentId.toLowerCase();
+ if(localStorage.getItem(key)==="submitted"){alert("This assessment has already been submitted on this device.");return}
+ order=[...shuffle(questions.filter(q=>q.band===1)),...shuffle(questions.filter(q=>q.band===2)),...shuffle(questions.filter(q=>q.band===3))];
+ document.getElementById("login").classList.add("hidden"); document.getElementById("quiz").classList.remove("hidden");
+ render();
+}
+
+function render(){
+ const q=order[index];
+ document.getElementById("bar").style.width=((index)/10*100)+"%";
+ document.getElementById("qno").textContent="GRAMMAR • QUESTION "+(index+1)+" OF 10";
+ document.getElementById("qtext").textContent=q.text;
+ let h="";
+ for(let i=0;i<q.blanks;i++){
+   h += `<label>${q.blanks>1 ? "Blank "+(i+1) : "Your answer"}</label><input class="ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">`;
+ }
+ document.getElementById("inputs").innerHTML=h;
+ document.querySelector(".ans").focus();
+ document.getElementById("nextBtn").textContent=index===9 ? "Continue to Writing" : "Next";
+}
+
+function nextQuestion(){
+ const q=order[index], fields=[...document.querySelectorAll(".ans")];
+ if(fields.some(x=>!x.value.trim())){alert("Please answer the question before continuing.");return}
+ const typed=fields.map(x=>x.value); let correct=true;
+ for(let i=0;i<q.blanks;i++){
+   const n=norm(typed[i]);
+   if(!q.answers[i].some(a=>norm(a)===n)){correct=false;break}
+ }
+ responses.push({
+   question_number:index+1,
+   original_question_id:q.id,
+   skill:q.skill,
+   question:q.text,
+   question_text:q.text,
+   student_answer:typed.join(" / "),
+   model_answer:q.model,
+   correct:correct
+ });
+ index++;
+ if(index<10){render()} else {
+   document.getElementById("quiz").classList.add("hidden");
+   document.getElementById("writing").classList.remove("hidden");
+ }
+}
+
+async function submitAssessment(){
+ const writing=document.getElementById("writingText").value;
+ if(!writing.trim()){alert("Please complete the writing task before submitting.");return}
+ const btn=document.getElementById("submitBtn"); btn.disabled=true; btn.textContent="Submitting...";
+ const score=responses.filter(r=>r.correct).length;
+ const payload={
+   event:"SUBMIT",
+   quiz_type:QUIZ_TYPE,
+   quiz:QUIZ_NAME,
+   student_name:studentName,
+   student_id:studentId,
+   grammar_score:score,
+   grammar_total:10,
+   writing_response:writing,
+   writing_total:5,
+   responses:responses,
+   submitted_at:new Date().toLocaleString()
+ };
+ try{
+   await fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
+   localStorage.setItem("spark_y4_diag15_"+studentId.toLowerCase(),"submitted");
+   document.getElementById("writing").classList.add("hidden");
+   document.getElementById("done").classList.remove("hidden");
+ }catch(e){
+   btn.disabled=false; btn.textContent="Submit Assessment";
+   alert("Submission could not be sent. Please check the internet connection and try again.");
+ }
+}
+</script>
+</body>
+</html>
